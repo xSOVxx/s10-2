@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caso Práctico S08 · Integración de Sistemas Empresariales mediante API</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f1ea;
+    --paper: #faf6ef;
+    --ink: #1f1b16;
+    --ink-soft: #4a443c;
+    --muted: #8a8278;
+    --line: #d8d1c4;
+    --line-soft: #e6e0d3;
+    --accent: #a8322e;
+    --accent-soft: #c4584e;
+    --moss: #5b6b4a;
+    --ochre: #9c6b2c;
+    --slate: #3d4a55;
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Helvetica Neue', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+
+  /* ====== APP SHELL ====== */
+  .app { height: 100vh; display: flex; flex-direction: column; }
+
+  /* ====== TOP BAR (hairline) ====== */
+  .topbar {
+    height: 2px;
+    background: var(--line-soft);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .progress {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ====== MAIN ====== */
+  .deck { flex: 1; position: relative; overflow: hidden; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 60px 90px;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+
+  /* ====== HEADER ====== */
+  .slide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 50px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .brand .logo {
+    background: var(--accent);
+    color: #faf6ef;
+    font-weight: 600;
+    padding: 4px 9px;
+    letter-spacing: 2px;
+    font-size: 10px;
+  }
+  .slide-num {
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ====== TYPOGRAPHY ====== */
+  .slide h1 {
+    font-size: 52px;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    color: var(--ink);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .slide h1 .hl {
+    color: var(--accent);
+    font-weight: 500;
+    position: relative;
+  }
+  .slide h1 .hl::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .slide h2 {
+    font-size: 32px;
+    margin-bottom: 24px;
+    color: var(--ink);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .slide h2 .badge {
+    background: transparent;
+    color: var(--accent);
+    font-size: 11px;
+    padding: 0;
+    border-radius: 0;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 2px;
+  }
+  .slide h3 {
+    font-size: 18px;
+    margin: 28px 0 14px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .slide p, .slide li {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+  .slide ul { margin: 6px 0 6px 20px; }
+  .slide li { margin-bottom: 8px; padding-left: 4px; }
+  .slide li::marker { color: var(--accent); }
+  .lead {
+    font-size: 21px;
+    color: var(--ink-soft);
+    max-width: 880px;
+    line-height: 1.65;
+    font-weight: 400;
+  }
+  .muted {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 18px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  /* ====== TITLE SLIDE ====== */
+  .title-slide {
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    padding: 90px 110px;
+  }
+  .title-slide .eyebrow {
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 36px;
+    padding-left: 50px;
+    position: relative;
+  }
+  .title-slide .eyebrow::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    width: 40px; height: 1px;
+    background: var(--accent);
+  }
+  .title-slide h1 {
+    font-size: 72px;
+    margin-bottom: 36px;
+    max-width: 1100px;
+  }
+  .title-slide .sub {
+    font-size: 20px;
+    color: var(--ink-soft);
+    max-width: 780px;
+    line-height: 1.65;
+    font-weight: 400;
+    border-left: 1px solid var(--line);
+    padding-left: 28px;
+    margin-bottom: 80px;
+  }
+  .title-slide .footer-info {
+    margin-top: auto;
+    display: flex;
+    gap: 70px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-top: 30px;
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+  .title-slide .footer-info b {
+    color: var(--ink);
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+  }
+
+  /* ====== CARDS GRID ====== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 26px 28px;
+    position: relative;
+    transition: border-color .3s ease;
+  }
+  .card:hover { border-color: var(--ink-soft); }
+  .card h4 {
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card p, .card li {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  .card.red { border-top: 2px solid var(--accent); }
+  .card.ok { border-top: 2px solid var(--moss); }
+  .card.warn { border-top: 2px solid var(--ochre); }
+  .card.info { border-top: 2px solid var(--slate); }
+
+  /* ====== TABLE ====== */
+  .table-wrap { overflow-x: auto; margin-top: 16px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  th, td {
+    text-align: left;
+    padding: 18px 22px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--line-soft);
+    font-weight: 400;
+  }
+  th {
+    background: transparent;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--ink);
+  }
+  tr:last-child td { border-bottom: none; }
+  td .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .pill.bad {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .pill.good {
+    background: transparent;
+    color: var(--moss);
+    border: 1px solid var(--moss);
+  }
+
+  /* ====== ACTORS ====== */
+  .actors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 24px;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .actor {
+    background: var(--paper);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 36px 28px;
+    text-align: left;
+    position: relative;
+  }
+  .actor .ico {
+    font-size: 11px;
+    margin-bottom: 18px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .actor h4 {
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 12px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .actor p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    font-weight: 400;
+  }
+  .actor:nth-child(1)::before,
+  .actor:nth-child(2)::before,
+  .actor:nth-child(3)::before,
+  .actor:nth-child(4)::before,
+  .actor:nth-child(5)::before,
+  .actor:nth-child(6)::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  /* ====== DIAGRAM ====== */
+  .diagram-wrap {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px;
+    margin-top: 18px;
+    overflow-x: auto;
+  }
+  .mermaid { background: var(--paper); }
+  .mermaid .actor, .mermaid rect { font-family: inherit !important; }
+
+  /* ====== CODE ====== */
+  .code-block {
+    background: var(--ink);
+    color: #e8e3d8;
+    padding: 24px 28px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    margin-top: 12px;
+    font-weight: 400;
+  }
+  .code-block .kw { color: #d4836f; }
+  .code-block .str { color: #8a9b6e; }
+  .code-block .com { color: #6b6660; font-style: italic; }
+  .code-block .id { color: #c9a86a; }
+
+  /* ====== STEPS ====== */
+  .steps { counter-reset: step; margin-top: 18px; }
+  .step {
+    counter-increment: step;
+    display: flex;
+    gap: 24px;
+    padding: 20px 0;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .step:last-child { border-bottom: none; }
+  .step::before {
+    content: counter(step, decimal-leading-zero);
+    color: var(--accent);
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 2px;
+    min-width: 40px;
+    padding-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .step .text {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  .step .text b { color: var(--ink); font-weight: 600; }
+
+  /* ====== CRITERION BOX ====== */
+  .criterion {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px 36px;
+    margin-top: 18px;
+    position: relative;
+  }
+  .criterion::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 40px; height: 1px;
+    background: var(--accent);
+  }
+  .criterion h3 {
+    color: var(--ink);
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .criterion.ok::before { background: var(--moss); }
+  .criterion.warn::before { background: var(--ochre); }
+  .criterion.info::before { background: var(--slate); }
+  .criterion.ok h3 { color: var(--moss); }
+  .criterion.warn h3 { color: var(--ochre); }
+  .criterion.info h3 { color: var(--slate); }
+
+  /* ====== QUOTE ====== */
+  .quote {
+    background: transparent;
+    border-left: 1px solid var(--accent);
+    padding: 24px 32px;
+    font-size: 19px;
+    font-style: italic;
+    color: var(--ink);
+    margin: 24px 0;
+    line-height: 1.7;
+    font-weight: 400;
+    max-width: 900px;
+  }
+  .quote b { font-weight: 600; color: var(--ink); }
+
+  /* ====== NAV ====== */
+  .nav {
+    height: 72px;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 50px;
+    flex-shrink: 0;
+  }
+  .nav button {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 10px 26px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all .25s ease;
+    font-family: inherit;
+  }
+  .nav button:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .nav button:disabled {
+    border-color: var(--line);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  .nav button:disabled:hover {
+    background: transparent;
+    color: var(--muted);
+  }
+  .nav .counter {
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .nav .counter b {
+    color: var(--ink);
+    font-weight: 500;
+    margin: 0 4px;
+  }
+  .nav .kbd-hint {
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .nav .kbd-hint kbd {
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin: 0 2px;
+  }
+
+  /* ====== HIGHLIGHT BOXES ====== */
+  .highlight-box {
+    background: var(--paper);
+    border: 1px solid var(--accent);
+    border-left-width: 1px;
+    padding: 18px 24px;
+    color: var(--ink);
+    font-size: 15px;
+    margin: 16px 0;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  .highlight-box b { color: var(--accent); font-weight: 600; }
+
+  .ok-box {
+    background: var(--paper);
+    border: 1px solid var(--moss);
+    padding: 18px 24px;
+    color: var(--ink);
+    font-size: 15px;
+    margin: 16px 0;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  .ok-box b { color: var(--moss); font-weight: 600; }
+
+  /* ====== ACCENT DIVIDER ====== */
+  .accent-line {
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+    margin: 30px 0;
+  }
+
+  /* ====== INLINE CODE (sin estilo inline) ====== */
+  .slide code {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    padding: 1px 7px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .slide { padding: 30px; }
+    .title-slide { padding: 40px 30px; }
+    .title-slide h1 { font-size: 40px; }
+    .slide h1 { font-size: 32px; }
+    .slide h2 { font-size: 22px; flex-wrap: wrap; }
+    .grid-2, .grid-3, .grid-4, .actors { grid-template-columns: 1fr; }
+    .actors { border-left: none; }
+    .actor { border-right: none; }
+    .nav { padding: 0 20px; height: auto; flex-wrap: wrap; padding: 14px 20px; gap: 10px; }
+    .nav .kbd-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar"><div class="progress" id="progress"></div></div>
+
+  <div class="deck" id="deck">
+
+    <!-- ========== SLIDE 1: PORTADA ========== -->
+    <section class="slide title-slide active" data-title="Portada">
+      <div class="eyebrow">Sistemas de Información Empresarial · Sesión 8</div>
+      <h1>Integración de Sistemas<br>Empresariales mediante <span class="hl">API</span></h1>
+      <div class="sub">Caso práctico: <b>DeliveryRápido Perú S.A.C.</b><br>Diseño de un arquetipo sistémico con API Gateway REST</div>
+      <div class="footer-info">
+        <div><b>Curso</b>SIE</div>
+        <div><b>Ciclo</b>Agosto 2026</div>
+        <div><b>Universidad</b>Tecnológica del Perú</div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 2: CONTEXTO ========== -->
+    <section class="slide" data-title="Contexto">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">02 / 11</div>
+      </div>
+      <h2>1. Contexto de la empresa</h2>
+      <div class="grid-2">
+        <div class="card red">
+          <h4>DeliveryRápido Perú S.A.C.</h4>
+          <p>Cadena de restaurantes con servicio de entrega a domicilio (delivery) en Lima Metropolitana. Maneja altos volúmenes de pedidos en hora punta.</p>
+          <p style="margin-top:10px"><b>Rubro:</b> Gastronomía · Food delivery<br>
+          <b>Operación:</b> 12 locales + App propia + motorizados</p>
+        </div>
+        <div class="card info">
+          <h4>Situación actual</h4>
+          <p>La empresa tiene <b>5 sistemas independientes</b> que no se comunican entre sí:</p>
+          <ul style="margin-top:8px">
+            <li>App Móvil de Pedidos (nativa Android/iOS)</li>
+            <li>Sistema de Ventas POS (legacy de escritorio)</li>
+            <li>Sistema de Inventario (web propia)</li>
+            <li>Pasarela de Pagos (Niubiz / Izipay)</li>
+            <li>Sistema de Delivery (web propia)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 4: PROBLEMA ========== -->
+    <section class="slide" data-title="Problema">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">03 / 11</div>
+      </div>
+      <h2>2. El problema actual</h2>
+      <p class="lead">Cuando un cliente hace un pedido desde la App, el cajero debe ejecutar tareas manuales que <b>no deberían existir</b>:</p>
+      <div class="grid-3">
+        <div class="card warn">
+          <h4>Consultar stock</h4>
+          <p>Llamar por teléfono a cocina para saber si hay disponibilidad del plato.</p>
+        </div>
+        <div class="card warn">
+          <h4>Cobrar manualmente</h4>
+          <p>Pasar la tarjeta por la máquina POS y registrar el voucher en una planilla Excel.</p>
+        </div>
+        <div class="card warn">
+          <h4>Asignar por WhatsApp</h4>
+          <p>Escribir al motorizado por WhatsApp para que pase a recoger el pedido.</p>
+        </div>
+      </div>
+      <div class="highlight-box">
+        <b>Consecuencias:</b> pedidos duplicados, cobros sin despacho, productos agotados vendidos, reclamos constantes, conciliaciones manuales al cierre del día, pérdida de clientes y de reputación.
+      </div>
+      <p class="muted">Fuente del problema: cada sistema es una "isla" — no comparten información automáticamente. Se necesita un mecanismo de <b>interoperabilidad</b>.</p>
+    </section>
+
+    <!-- ========== SLIDE 5: OBJETIVO ========== -->
+    <section class="slide" data-title="Objetivo">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">04 / 11</div>
+      </div>
+      <h2>3. Objetivo del arquetipo sistémico</h2>
+      <div class="ok-box">
+        <b>Diseñar la integración de los 5 sistemas a través de una API REST central (API Gateway) que permita el flujo automático de información, garantizando funcionalidad, seguridad y eficiencia.</b>
+      </div>
+
+      <h3>¿Qué es un "arquetipo sistémico"?</h3>
+      <p>Es un <b>patrón de arquitectura</b> (en este caso, un diagrama de secuencia UML) que define cómo interactúan los sistemas para resolver el problema. Sirve como <b>plantilla reusable</b> para futuros proyectos similares.</p>
+
+      <div class="grid-2">
+        <div class="card ok">
+          <h4>Lo que el arquetipo debe permitir</h4>
+          <ul>
+            <li>Recibir el pedido desde la App y procesarlo <b>sin intervención humana</b>.</li>
+            <li>Validar stock → cobrar → actualizar inventario → asignar motorizado.</li>
+            <li>Manejar excepciones (sin stock, pago rechazado).</li>
+          </ul>
+        </div>
+        <div class="card info">
+          <h4>Patrón elegido</h4>
+          <ul>
+            <li><b>API Gateway centralizada</b> (estilo hub-and-spoke).</li>
+            <li><b>Servicios Web REST</b> con JSON sobre HTTPS.</li>
+            <li>Reduce integraciones de <b>N × M a N + M</b>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 6: ACTORES ========== -->
+    <section class="slide" data-title="Actores">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">05 / 11</div>
+      </div>
+      <h2>4. Actores del arquetipo</h2>
+      <p class="lead">Son los <b>6 participantes</b> que intervienen en la interacción, tal como se definen en un diagrama de secuencia UML.</p>
+      <div class="actors">
+        <div class="actor">
+          <div class="ico">CL</div>
+          <h4>Cliente</h4>
+          <p>Usuario final que realiza el pedido desde la App Móvil.</p>
+        </div>
+        <div class="actor">
+          <div class="ico">AM</div>
+          <h4>App Móvil (AM)</h4>
+          <p>Sistema cliente. Recibe pedidos y muestra el estado al cliente.</p>
+        </div>
+        <div class="actor">
+          <div class="ico">API</div>
+          <h4>API Gateway (API)</h4>
+          <p>Servicio web REST que orquesta toda la integración. Único punto de entrada.</p>
+        </div>
+        <div class="actor">
+          <div class="ico">INV</div>
+          <h4>Sistema de Inventario (SI)</h4>
+          <p>Consulta y descuenta stock de productos/platos.</p>
+        </div>
+        <div class="actor">
+          <div class="ico">PAGO</div>
+          <h4>Pasarela de Pagos (PP)</h4>
+          <p>Valida y procesa el cobro con tarjeta (Niubiz / Izipay).</p>
+        </div>
+        <div class="actor">
+          <div class="ico">DLV</div>
+          <h4>Sistema de Delivery (SD)</h4>
+          <p>Asigna y notifica al motorizado disponible.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 7: DIAGRAMA ========== -->
+    <section class="slide" data-title="Diagrama de Secuencia">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">06 / 11</div>
+      </div>
+      <h2>5. Arquetipo sistémico — Diagrama de Secuencia</h2>
+      <p class="lead">Flujo principal de extremo a extremo con los bloques <code style="background:transparent;color:var(--accent);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">alt</code> que modelan las excepciones.</p>
+      <div class="diagram-wrap">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Cliente
+    participant AM as App Móvil
+    participant API as API Gateway
+    participant SI as Sistema de Inventario
+    participant PP as Pasarela de Pagos
+    participant SD as Sistema de Delivery
+
+    Cliente->>AM: Realiza pedido (productos, dirección, medio de pago)
+    AM->>API: POST /pedidos {productos, cliente, total}
+    API->>SI: GET /stock?producto=P001
+    SI-->>API: {disponible: true, cantidad: 5}
+
+    alt Stock disponible
+        API->>PP: POST /cobrar {monto, token_tarjeta, cliente}
+        PP-->>API: {estado: "APROBADO", id_transaccion}
+
+        alt Pago aprobado
+            API->>SI: PUT /stock/descontar {producto: P001, cantidad: 1}
+            SI-->>API: {stock_actualizado: 4}
+            API->>SD: POST /asignar {pedido, direccion, restaurante}
+            SD-->>API: {motorizado: "M-014", tiempo_estimado: 25min}
+            API-->>AM: 200 OK {id_pedido, estado: "CONFIRMADO", motorizado, tiempo}
+            AM-->>Cliente: Mostrar confirmación y tiempo de entrega
+        else Pago rechazado
+            API-->>AM: 402 {estado: "PAGO_RECHAZADO", motivo}
+            AM-->>Cliente: Notificar rechazo del pago
+        end
+
+    else Sin stock
+        API-->>AM: 409 {estado: "SIN_STOCK", productos_agotados}
+        AM-->>Cliente: Informar producto agotado y sugerir alternativas
+    end
+        </pre>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 8: FLUJO TEXTUAL ========== -->
+    <section class="slide" data-title="Flujo textual">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">07 / 11</div>
+      </div>
+      <h2>6. Flujo textual</h2>
+      <div class="steps">
+        <div class="step"><div class="text">El <b>Cliente</b> envía el pedido desde la <b>App Móvil</b> con productos, dirección y medio de pago.</div></div>
+        <div class="step"><div class="text">La <b>App Móvil</b> invoca a la <b>API</b> mediante <code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">POST /pedidos</code>.</div></div>
+        <div class="step"><div class="text">La <b>API</b> consulta al <b>Sistema de Inventario</b> con <code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">GET /stock</code>.</div></div>
+        <div class="step"><div class="text">Si hay stock, la <b>API</b> solicita el cobro a la <b>Pasarela de Pagos</b> con <code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">POST /cobrar</code>.</div></div>
+        <div class="step"><div class="text">Si el pago es <b>APROBADO</b>, la <b>API</b> descuenta el stock (<code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">PUT /stock/descontar</code>).</div></div>
+        <div class="step"><div class="text">La <b>API</b> asigna un motorizado en el <b>Sistema de Delivery</b> (<code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">POST /asignar</code>).</div></div>
+        <div class="step"><div class="text">La <b>API</b> responde <code style="background:transparent;color:var(--moss);padding:1px 6px;border:1px solid var(--line);font-size:13px;font-family:'SF Mono','Consolas',monospace">200 OK</code> a la App con id_pedido, motorizado y tiempo estimado. La <b>App</b> lo muestra al cliente.</div></div>
+        <div class="step"><div class="text">En caso de fallo (<b>sin stock</b> → 409 o <b>pago rechazado</b> → 402), la API responde con código HTTP estándar y mensaje claro a la App.</div></div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 9: FUNCIONALIDAD ========== -->
+    <section class="slide" data-title="Criterio · Funcionalidad">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">08 / 11</div>
+      </div>
+      <h2>7. Criterio 1 · Funcionalidad</h2>
+      <div class="criterion">
+        <h3>¿La API hace lo que debe hacer?</h3>
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size:16px;margin-top:0">Arquitectura REST</h3>
+            <ul>
+              <li>Endpoints basados en <b>recursos de negocio</b> (<code>/pedidos</code>, <code>/stock</code>, <code>/cobrar</code>, <code>/asignar</code>).</li>
+              <li>Verbos HTTP correctos: <code>GET</code> (consulta), <code>POST</code> (creación), <code>PUT</code> (actualización).</li>
+              <li>Códigos HTTP estándar: <code>200</code>, <code>402</code>, <code>409</code>, <code>500</code>.</li>
+              <li>Mensajes en <b>JSON</b> (liviano, estándar de la industria).</li>
+              <li>Bloques <code>alt/else</code> modelan los caminos alternos (stock agotado, pago rechazado).</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="font-size:16px;margin-top:0">Comparativa (PPT pág. 13)</h3>
+            <table>
+              <tr><th>Opción</th><th>¿Por qué NO / SÍ?</th></tr>
+              <tr><td>SOAP (XML)</td><td><span class="pill bad">Pesado</span></td></tr>
+              <tr><td>gRPC</td><td><span class="pill bad">Binario, no legible</span></td></tr>
+              <tr><td>GraphQL</td><td><span class="pill bad">Overkill para este caso</span></td></tr>
+              <tr><td><b>REST + JSON</b></td><td><span class="pill good">Elegido</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 10: SEGURIDAD ========== -->
+    <section class="slide" data-title="Criterio · Seguridad">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">09 / 11</div>
+      </div>
+      <h2>8. Criterio 2 · Seguridad</h2>
+      <div class="criterion warn">
+        <h3>¿La API protege los datos y el acceso?</h3>
+        <div class="grid-2">
+          <div>
+            <ul>
+              <li><b>HTTPS / TLS</b> en todas las comunicaciones (cifrado en tránsito).</li>
+              <li><b>Autenticación</b> mediante <code>access_token</code> con <b>OAuth2 / JWT</b> para cada sistema cliente.</li>
+              <li><b>API Gateway</b> como único punto de entrada → facilita <i>rate limiting</i> y filtrado.</li>
+              <li><b>Validación de datos</b> en cada endpoint (no confiar en el cliente).</li>
+              <li><b>Ofuscación</b>: la API nunca expone el token de tarjeta del cliente a sistemas internos.</li>
+              <li><b>Logs y auditoría</b> centralizados en el Gateway.</li>
+            </ul>
+          </div>
+          <div>
+            <div class="code-block" style="font-size:13px"><span class="com">// Ejemplo: token en cada request</span>
+<span class="kw">GET</span> /api/v1/stock?producto=P001
+<span class="id">Authorization</span>: <span class="str">Bearer eyJhbGciOiJIUzI1...</span>
+<span class="id">X-Request-Id</span>: <span class="str">a1b2c3d4</span>
+
+<span class="com">// Respuesta enmascarando datos sensibles</span>
+{
+  <span class="id">"producto"</span>: <span class="str">"P001"</span>,
+  <span class="id">"disponible"</span>: <span class="kw">true</span>,
+  <span class="id">"cantidad"</span>: <span class="kw">5</span>,
+  <span class="id">"tarjeta"</span>: <span class="str">"**** **** **** 4242"</span>
+}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 11: EFICIENCIA ========== -->
+    <section class="slide" data-title="Criterio · Eficiencia">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">10 / 11</div>
+      </div>
+      <h2>9. Criterio 3 · Eficiencia</h2>
+      <div class="criterion info">
+        <h3>¿La API rinde y escala?</h3>
+        <div class="grid-2">
+          <div>
+            <ul>
+              <li>Arquitectura <b>cliente-servidor sin estado (stateless)</b> → cada request es independiente (característica REST).</li>
+              <li>Endpoints <b>cacheables</b> (<code>GET /stock</code>) → reduce carga en el inventario.</li>
+              <li><b>HTTP/2</b> para multiplexación y menor latencia.</li>
+              <li>Orquestación centralizada: <b>1 API Gateway</b> evita conexiones punto a punto (de <b>N × M</b> a <b>N + M</b>).</li>
+              <li>JSON más liviano que XML/SOAP.</li>
+              <li>Webhooks asíncronos para notificar al cliente cuando se asigna el motorizado.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="font-size:16px;margin-top:0">Reducción de acoplamiento</h3>
+            <div class="card info" style="margin-top:8px">
+              <p><b>Sin API Gateway:</b></p>
+              <p style="font-family:monospace;color:#fca5a5">App ↔ Inventario<br>App ↔ Pagos<br>App ↔ Delivery<br>POS ↔ Inventario<br>POS ↔ Pagos<br>POS ↔ Delivery<br>= <b>9 conexiones</b> (N×M)</p>
+            </div>
+            <div class="card ok" style="margin-top:8px">
+              <p><b>Con API Gateway:</b></p>
+              <p style="font-family:monospace;color:#86efac">App ↔ API<br>POS ↔ API<br>Inventario ↔ API<br>Pagos ↔ API<br>Delivery ↔ API<br>= <b>5 conexiones</b> (N+M)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SLIDE 12: PREGUNTA RETADORA ========== -->
+    <section class="slide" data-title="Pregunta retadora">
+      <div class="slide-header">
+        <div class="brand"><span class="logo">UTP</span> Sesión 8 · Caso Práctico</div>
+        <div class="slide-num">11 / 11</div>
+      </div>
+      <h2>10. Respuesta a la pregunta retadora</h2>
+      <div class="quote">
+        "¿Cómo lograría usted que dos (2) sistemas empresariales diferentes compartan información automáticamente mediante una API?"
+      </div>
+      <div class="steps">
+        <div class="step"><div class="text"><b>Estandarizar</b> el formato de intercambio (JSON) y los verbos HTTP.</div></div>
+        <div class="step"><div class="text"><b>Diseñar endpoints</b> claros basados en los recursos de negocio (no en las bases de datos internas).</div></div>
+        <div class="step"><div class="text"><b>Publicar la API</b> detrás de un API Gateway que gestione autenticación, rate limiting y logging.</div></div>
+        <div class="step"><div class="text"><b>Versionar</b> la API (<code>/v1/</code>, <code>/v2/</code>) para no romper integraciones futuras.</div></div>
+        <div class="step"><div class="text"><b>Documentar</b> con OpenAPI/Swagger para que cualquier sistema pueda consumirla.</div></div>
+        <div class="step"><div class="text"><b>Garantizar idempotencia</b> en operaciones críticas (cobros, descuentos de stock) para evitar duplicados ante reintentos.</div></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===== NAV ===== -->
+  <div class="nav">
+    <button id="prev">◀ Anterior</button>
+    <div class="counter">Diapositiva <b id="cur">1</b> / <b id="tot">11</b> · <span id="title">Portada</span></div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="kbd-hint"><kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>Espacio</kbd> siguiente</span>
+      <button id="next">Siguiente ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== Mermaid init =====
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose', sequence: { useMaxWidth: true, boxMargin: 6 } });
+
+  // ===== Slides nav =====
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const curEl = document.getElementById('cur');
+  const totEl = document.getElementById('tot');
+  const titleEl = document.getElementById('title');
+  const progress = document.getElementById('progress');
+
+  totEl.textContent = total;
+
+  function go(n) {
+    if (n < 0 || n >= total || n === idx) return;
+    const current = slides[idx];
+    const next = slides[n];
+
+    // Limpiar estado del slide actual
+    current.classList.remove('active', 'left');
+
+    // Activar el nuevo slide
+    next.classList.add('active');
+    next.classList.remove('left');
+
+    // Actualizar estado
+    idx = n;
+    curEl.textContent = idx + 1;
+    titleEl.textContent = next.dataset.title || '';
+    progress.style.width = (((idx + 1) / total) * 100) + '%';
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total - 1;
+  }
+
+  prevBtn.addEventListener('click', () => go(idx - 1));
+  nextBtn.addEventListener('click', () => go(idx + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') { go(0); }
+    else if (e.key === 'End') { go(total - 1); }
+    else if (/^[0-9]$/.test(e.key)) {
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= total) go(n - 1);
+    }
+  });
+
+  // init
+  go(0);
+</script>
+</body>
+</html>
